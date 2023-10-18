@@ -1,0 +1,20 @@
+version: "3"
+services:
+  load-testing-threads:
+    build: .
+    ports:
+      - 5000:5000
+      - 8089:8089
+
+  mysql:
+    image: mysql
+    container_name: mysql
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=history_db
+    volumes:
+      - ./database:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d

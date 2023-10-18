@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora</title>
+</head>
+<body>
+    <h1>Calculadora</h1>
+
+    <form action="/calculate" action="GET">
+        <label for="value1">Numero 1</label>
+        <input type="number" name="value1">
+
+        <label for="value2">Numero 2</label>
+        <input type="number" name="value2">
+
+        <p>                
+            <input type="radio" name="method" id="sum" value="sum">
+            <label for="sum">Somar</label>
+
+            <input type="radio" name="method" id="subb" value="subb">
+            <label for="subb">Subtrair</label>
+
+            <input type="radio" name="method" id="multiply" value="multiply">
+            <label for="multiply">Multiplicar</label>
+
+            <input type="radio" name="method" id="divide" value="divide">
+            <label for="divide">Dividir</label>
+        </p>
+
+        <button name="form" value="sent">enviar</button>
+    </form>
+    {% if result != None %}
+    <h2>{{ result }}</h2>
+    {% endif %}
+</body>
+</html>
