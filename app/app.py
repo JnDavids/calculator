@@ -5,8 +5,10 @@ from flask import Flask
 from flask import request
 from flask import jsonify
 from flask import render_template
+from flask_executor import Executor
 
 app = Flask(__name__)
+executor = Executor(app)
 
 @app.route("/calculate")
 def calculate():
@@ -27,32 +29,7 @@ def calculate():
     status = "ok" if result != None else "error"
 
     if form == "sent":
-        try:
-            mysql_database = mysql.connector.connect(
-                host="mysql",
-                user="root",
-                password="root",
-                database="history_db"
-            )
-            mysql_cursor = mysql_database.cursor()
-
-            date = datetime.datetime.utcnow()
-
-            add_record = ("INSERT INTO history_tb "
-                          "(METHOD, VALUE1, VALUE2, RESULT, STATUS, DATE)"
-                          "VALUES (%s, %s, %s, %s, %s, %s)")
-
-            data = (method, value1, value2, result, status, date)
-
-            mysql_cursor.execute(add_record, data)
-            mysql_database.commit()
-
-        except mysql.connector.Error as err:
-            print(err.msg)
-
-        finally:
-            mysql_cursor.close()
-            mysql_database.close()
+        executor.submit(insert_record, method, value1, value2, result, status)
 
     if json == "true":
         return jsonify({
@@ -98,3 +75,32 @@ def report():
         mysql_database.close()
 
     return jsonify(history)
+
+
+def insert_record(method, value1, value2, result, status):
+    try:
+        mysql_database = mysql.connector.connect(
+            host="mysql",
+            user="root",
+            password="root",
+            database="history_db"
+        )
+        mysql_cursor = mysql_database.cursor()
+
+        date = datetime.datetime.utcnow()
+
+        add_record = ("INSERT INTO history_tb "
+                      "(METHOD, VALUE1, VALUE2, RESULT, STATUS, DATE)"
+                      "VALUES (%s, %s, %s, %s, %s, %s)")
+
+        data = (method, value1, value2, result, status, date)
+
+        mysql_cursor.execute(add_record, data)
+        mysql_database.commit()
+
+    except mysql.connector.Error as err:
+        print(err.msg)
+
+    finally:
+        mysql_cursor.close()
+        mysql_database.close()
