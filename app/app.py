@@ -1,3 +1,4 @@
+import logging
 import datetime
 import mysql.connector
 
@@ -6,6 +7,19 @@ from flask import request
 from flask import jsonify
 from flask import render_template
 from flask_executor import Executor
+
+
+logger = logging.getLogger("mysql_connector")
+
+log_format = logging.Formatter(
+    "%(asctime)s %(name)s %(levelname)s %(message)s"
+)
+
+log_handler = logging.FileHandler("./log/app.log")
+log_handler.setFormatter(log_format)
+
+logger.addHandler(log_handler)
+
 
 app = Flask(__name__)
 executor = Executor(app)
@@ -68,7 +82,7 @@ def report():
             i += 1
 
     except mysql.connector.Error as err:
-        print(err.msg)
+        logger.error(err)
 
     finally:
         mysql_cursor.close()
@@ -99,7 +113,7 @@ def insert_record(method, value1, value2, result, status):
         mysql_database.commit()
 
     except mysql.connector.Error as err:
-        print(err.msg)
+        logger.error(err)
 
     finally:
         mysql_cursor.close()
