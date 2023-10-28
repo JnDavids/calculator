@@ -8,6 +8,8 @@ from flask import jsonify
 from flask import render_template
 from flask_executor import Executor
 
+from calculator import Calculator
+
 
 logger = logging.getLogger("mysql_connector")
 
@@ -34,13 +36,10 @@ def calculate():
     value1 = args.get("value1", type=int)
     value2 = args.get("value2", type=int)
 
-    result = (value1 + value2 if method == "sum"
-         else value1 - value2 if method == "subb"
-         else value1 * value2 if method == "multiply"
-         else value1 / value2 if method == "divide" and value2 != 0
-         else None)
+    calculator = Calculator()
 
-    status = "ok" if result != None else "error"
+    result = calculator.calculate(method, value1, value2)
+    status = "ok" if result else "error"
 
     if form == "sent":
         executor.submit(insert_record, method, value1, value2, result, status)
