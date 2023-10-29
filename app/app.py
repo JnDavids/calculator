@@ -1,5 +1,4 @@
 import logging
-import datetime
 import mysql.connector
 
 from flask import Flask
@@ -11,7 +10,7 @@ from flask_executor import Executor
 from calculator import Calculator
 
 
-logger = logging.getLogger("mysql_connector")
+logger = logging.getLogger("calculator")
 
 log_format = logging.Formatter(
     "%(asctime)s %(name)s %(levelname)s %(message)s"
@@ -36,22 +35,27 @@ def calculate():
     value1 = args.get("value1", type=int)
     value2 = args.get("value2", type=int)
 
-    calculator = Calculator()
-
-    result = calculator.calculate(method, value1, value2)
-    status = "ok" if result else "error"
-
     if form == "sent":
-        executor.submit(insert_record, method, value1, value2, result, status)
+        try:
+            calculation = Calculator(method, value1, value2)
 
-    if json == "true":
-        return jsonify({
-            "method": method,
-            "status": status,
-            "result": result
-        })
+            executor.submit(insert_record, calculation)
 
-    return render_template("index.html", result = result)
+            if json == "true":
+                return jsonify({
+                    "method": calculation.get_operation(),
+                    "value1": calculation.get_value1(),
+                    "value2": calculation.get_value2(),
+                    "result": calculation.get_result(),
+                    "date": calculation.get_date()
+                })
+
+            return render_template("index.html", result = calculation.get_result())
+        
+        except Exception as err:
+            return jsonify({ "error": str(err) })
+    
+    return render_template("index.html", result = None)
 
 
 @app.route("/report")
@@ -71,12 +75,11 @@ def report():
 
         for line in mysql_cursor:
             history[i] = {
-                "date": line[5].isoformat(sep=" "),
                 "operation": line[0],
-                "result": line[3],
-                "status": line[4],
                 "value1": line[1],
-                "value2": line[2]
+                "value2": line[2],
+                "result": line[3],
+                "date": line[4].isoformat(sep=" ")
             }
             i += 1
 
@@ -90,7 +93,7 @@ def report():
     return jsonify(history)
 
 
-def insert_record(method, value1, value2, result, status):
+def insert_record(calculator):
     try:
         mysql_database = mysql.connector.connect(
             host="mysql",
@@ -100,13 +103,15 @@ def insert_record(method, value1, value2, result, status):
         )
         mysql_cursor = mysql_database.cursor()
 
-        date = datetime.datetime.utcnow()
-
         add_record = ("INSERT INTO history_tb "
-                      "(METHOD, VALUE1, VALUE2, RESULT, STATUS, DATE)"
-                      "VALUES (%s, %s, %s, %s, %s, %s)")
+                      "(METHOD, VALUE1, VALUE2, RESULT, DATE)"
+                      "VALUES (%s, %s, %s, %s, %s)")
 
-        data = (method, value1, value2, result, status, date)
+        data = (calculator.get_operation(),
+                calculator.get_value1(),
+                calculator.get_value2(),
+                calculator.get_result(),
+                calculator.get_date())
 
         mysql_cursor.execute(add_record, data)
         mysql_database.commit()
