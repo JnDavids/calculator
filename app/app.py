@@ -7,6 +7,7 @@ from flask import jsonify
 from flask import render_template
 from flask_executor import Executor
 
+from database import Database
 from calculator import Calculator
 
 
@@ -39,7 +40,20 @@ def calculate():
         try:
             calculation = Calculator(method, value1, value2)
 
-            executor.submit(insert_record, calculation)
+            try:
+                data = (
+                    calculation.get_operation(),
+                    calculation.get_value1(),
+                    calculation.get_value2(),
+                    calculation.get_result(),
+                    calculation.get_date().isoformat()
+                )
+            
+                database = Database("mysql", "root", "root", "history_db")
+
+                executor.submit(database.insert("history_tb", "_all", data))
+            except Exception as err:
+                logger.error(err)
 
             if json == "true":
                 return jsonify({
@@ -91,34 +105,3 @@ def report():
         mysql_database.close()
 
     return jsonify(history)
-
-
-def insert_record(calculator):
-    try:
-        mysql_database = mysql.connector.connect(
-            host="mysql",
-            user="root",
-            password="root",
-            database="history_db"
-        )
-        mysql_cursor = mysql_database.cursor()
-
-        add_record = ("INSERT INTO history_tb "
-                      "(METHOD, VALUE1, VALUE2, RESULT, DATE)"
-                      "VALUES (%s, %s, %s, %s, %s)")
-
-        data = (calculator.get_operation(),
-                calculator.get_value1(),
-                calculator.get_value2(),
-                calculator.get_result(),
-                calculator.get_date())
-
-        mysql_cursor.execute(add_record, data)
-        mysql_database.commit()
-
-    except mysql.connector.Error as err:
-        logger.error(err)
-
-    finally:
-        mysql_cursor.close()
-        mysql_database.close()
