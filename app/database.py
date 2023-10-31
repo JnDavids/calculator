@@ -25,8 +25,17 @@ class Database(MySQLConnection):
 
         return self._cursor.column_names
 
+    def select(self, table, columns="*", where=None):
+        self._cursor.execute(
+            f"SELECT {columns} FROM {table} {'WHERE ' + where if where else ''}"
+        )
+        result = self._cursor.fetchall()
+        self.close()
+        
+        return result
+
     def insert(self, table, columns, *values):
-        if columns == "_all":
+        if columns == "*":
             columns = self.get_column_names(table)
 
         if len(values) > 1:

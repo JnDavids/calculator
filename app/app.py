@@ -1,5 +1,4 @@
 import logging
-import mysql.connector
 
 from flask import Flask
 from flask import request
@@ -51,7 +50,7 @@ def calculate():
             
                 database = Database("mysql", "root", "root", "history_db")
 
-                executor.submit(database.insert("history_tb", "_all", data))
+                executor.submit(database.insert("history_tb", "*", data))
             except Exception as err:
                 logger.error(err)
 
@@ -78,30 +77,19 @@ def report():
     i = 0
 
     try:
-        mysql_database = mysql.connector.connect(
-            host="mysql",
-            user="root",
-            password="root",
-            database="history_db"
-        )
-        mysql_cursor = mysql_database.cursor()
-        mysql_cursor.execute("SELECT * FROM history_tb")
+        database = Database("mysql", "root", "root", "history_db")
 
-        for line in mysql_cursor:
+        for row in database.select("history_tb"):
             history[i] = {
-                "operation": line[0],
-                "value1": line[1],
-                "value2": line[2],
-                "result": line[3],
-                "date": line[4].isoformat(sep=" ")
+                "operation": row[0],
+                "value1": row[1],
+                "value2": row[2],
+                "result": row[3],
+                "date": row[4].isoformat(sep=" ")
             }
             i += 1
 
-    except mysql.connector.Error as err:
+    except Exception as err:
         logger.error(err)
-
-    finally:
-        mysql_cursor.close()
-        mysql_database.close()
 
     return jsonify(history)
