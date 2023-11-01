@@ -1,16 +1,11 @@
 import logging
 
-from flask import Flask
-from flask import request
-from flask import jsonify
-from flask import render_template
+from flask import Flask, request, jsonify, render_template
 from flask_executor import Executor
 
 from database import Database
 from calculator import Calculator
 
-
-logger = logging.getLogger("calculator")
 
 log_format = logging.Formatter(
     "%(asctime)s %(name)s %(levelname)s %(message)s"
@@ -19,11 +14,13 @@ log_format = logging.Formatter(
 log_handler = logging.FileHandler("./log/app.log")
 log_handler.setFormatter(log_format)
 
+logger = logging.getLogger("calculator")
 logger.addHandler(log_handler)
 
 
 app = Flask(__name__)
 executor = Executor(app)
+
 
 @app.route("/calculate")
 def calculate():
