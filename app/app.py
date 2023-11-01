@@ -1,22 +1,9 @@
-import logging
-
 from flask import Flask, request, jsonify, render_template
 from flask_executor import Executor
 
+from logger import logger
 from database import Database
 from calculator import Calculator
-
-
-log_format = logging.Formatter(
-    "%(asctime)s %(name)s %(levelname)s %(message)s"
-)
-
-log_handler = logging.FileHandler("./log/app.log")
-log_handler.setFormatter(log_format)
-
-logger = logging.getLogger("calculator")
-logger.addHandler(log_handler)
-
 
 app = Flask(__name__)
 executor = Executor(app)
