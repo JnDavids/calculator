@@ -14,14 +14,11 @@ class Database(MySQLConnection):
             password=password,
             database=database
         )
-        self._cursor = self.cursor()
-
-    def _close(self) -> None:
-        super().close()
+        self._cursor = self.cursor(dictionary=True)
 
     def close(self) -> None:
         self._cursor.close()
-        self._close()
+        super().close()
 
     def get_column_names(self, table: str) -> tuple[str]:
         self._cursor.execute(f"SELECT * FROM {table} LIMIT 1")
@@ -31,7 +28,7 @@ class Database(MySQLConnection):
 
     def select(
         self, table: str, columns: str = "*", where: str = ""
-    ) -> list[tuple]:
+    ) -> list[dict]:
         self._cursor.execute(
             f"SELECT {columns} FROM {table}"
             f"{where and 'WHERE ' + where}"

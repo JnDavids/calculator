@@ -4,6 +4,9 @@ from flask_executor import Executor
 from logger import logger
 from database import Database
 from calculator import Calculator
+from jsonprovider import CalcJSONProvider
+
+Flask.json_provider_class = CalcJSONProvider
 
 app = Flask(__name__)
 executor = Executor(app)
@@ -57,23 +60,10 @@ def calculate():
 
 @app.route("/report")
 def report():
-    history = {}
-    i = 0
-
     try:
         database = Database("mysql", "root", "root", "history_db")
-
-        for row in database.select("history_tb"):
-            history[i] = {
-                "operation": row[0],
-                "value1": row[1],
-                "value2": row[2],
-                "result": row[3],
-                "date": row[4].isoformat(sep=" ")
-            }
-            i += 1
+        return jsonify(database.select("history_tb"))
 
     except Exception as err:
         logger.error(err)
-
-    return jsonify(history)
+        return jsonify([])
