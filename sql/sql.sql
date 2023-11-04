@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS history_tb (
-    METHOD VARCHAR(20),
-    VALUE1 INT,
-    VALUE2 INT,
-    RESULT FLOAT,
-    DATE DATETIME
+    operation VARCHAR(20),
+    value_1 INT,
+    value_2 INT,
+    result FLOAT,
+    date DATETIME
 );

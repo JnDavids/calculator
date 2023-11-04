@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Any
 from datetime import datetime
 
 
@@ -10,31 +10,56 @@ class Calculator:
         self._operation = operation
         self._value1 = value1
         self._value2 = value2
-        self._result = None
+        self._result = self.calculate()
         self._date = datetime.utcnow()
-        
-        self._check_args()
-        self.calculate()
 
-    def get_operation(self) -> str:
+    @property
+    def operation(self) -> str:
         return self._operation
-    
-    def get_value1(self) -> int:
+
+    @property
+    def value1(self) -> int:
         return self._value1
-    
-    def get_value2(self) -> int:
+
+    @property
+    def value2(self) -> int:
         return self._value2
     
-    def get_result(self) -> int|float:
+    @property
+    def result(self) -> int | float:
         return self._result
     
-    def get_date(self) -> datetime:
+    @property
+    def date(self) -> datetime:
         return self._date
 
-    def calculate(self) -> None:
-        self._result = self._select_operation()()
+    @property
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "operation": self._operation,
+            "value_1": self._value1,
+            "value_2": self._value2,
+            "result": self._result,
+            "date": self._date
+        }
 
-    def _select_operation(self) -> Callable[[], int|float]:
+    @property
+    def as_tuple(self) -> tuple[str, int, int, int | float, datetime]:
+        return (
+            self._operation,
+            self._value1,
+            self._value2,
+            self._result,
+            self._date
+        )
+
+    def calculate(self) -> int | float:
+        self._check_args()
+        operation = self._select_operation()
+
+        return operation()
+
+    def _select_operation(self) -> Callable[[], int | float]:
         operations = {
             "sum": self._sum,
             "subb": self._subtract,
@@ -94,8 +119,8 @@ class CalcError(Exception):
 
     def __init__(
         self,
-        missing_args: list[str]|None = None,
-        invalid_args: list[str]|None = None
+        missing_args: list[str] | None = None,
+        invalid_args: list[str] | None = None
     ) -> None:
         self._missing_args = missing_args
         self._invalid_args = invalid_args

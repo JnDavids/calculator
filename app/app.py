@@ -1,8 +1,8 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request as req, jsonify, render_template
 from flask_executor import Executor
 
 from logger import logger
-from database import Database
+from persist import CalcPersistenceInDB
 from calculator import Calculator
 from jsonprovider import CalcJSONProvider
 
@@ -14,56 +14,43 @@ executor = Executor(app)
 
 @app.route("/calculate")
 def calculate():
-    args = request.args
-    form = args.get("form")
-    json = args.get("json")
+    form = req.args.get("form")
+    json = req.args.get("json")
 
-    method = args.get("method")
-    value1 = args.get("value1", type=int)
-    value2 = args.get("value2", type=int)
+    operation = req.args.get("operation")
+    value1 = req.args.get("value1", type=int)
+    value2 = req.args.get("value2", type=int)
+    result = None
 
     if form == "sent":
         try:
-            calculation = Calculator(method, value1, value2)
-
-            try:
-                data = (
-                    calculation.get_operation(),
-                    calculation.get_value1(),
-                    calculation.get_value2(),
-                    calculation.get_result(),
-                    calculation.get_date().isoformat()
-                )
-            
-                database = Database("mysql", "root", "root", "history_db")
-
-                executor.submit(database.insert("history_tb", "*", data))
-            except Exception as err:
-                logger.error(err)
-
-            if json == "true":
-                return jsonify({
-                    "method": calculation.get_operation(),
-                    "value1": calculation.get_value1(),
-                    "value2": calculation.get_value2(),
-                    "result": calculation.get_result(),
-                    "date": calculation.get_date()
-                })
-
-            return render_template("index.html", result = calculation.get_result())
-        
+            calculation = Calculator(operation, value1, value2)
+            result = calculation.result
         except Exception as err:
-            return jsonify({ "error": str(err) })
-    
-    return render_template("index.html", result = None)
+            return jsonify(error=str(err))
+
+        try:
+            calculation_db = CalcPersistenceInDB()
+            executor.submit(calculation_db.persist(calculation))
+        except Exception as err:
+            logger.error(err)
+
+        if json == "true":
+            return jsonify(calculation.as_dict)
+
+    return render_template("index.html", result=result)
 
 
 @app.route("/report")
 def report():
-    try:
-        database = Database("mysql", "root", "root", "history_db")
-        return jsonify(database.select("history_tb"))
+    initial_date = req.args.get("i_date")
+    final_date = req.args.get("f_date")
 
+    try:
+        calculation_db = CalcPersistenceInDB()
+        return jsonify(
+            calculation_db.get_history_by_date(initial_date, final_date)
+        )
     except Exception as err:
         logger.error(err)
         return jsonify([])
