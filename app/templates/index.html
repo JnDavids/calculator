@@ -9,11 +9,11 @@
     <h1>Calculadora</h1>
 
     <form action="/calculate" action="GET">
-        <label for="value1">Numero 1</label>
-        <input type="number" name="value1">
+        <label for="value_1">Numero 1</label>
+        <input type="number" name="value_1">
 
-        <label for="value2">Numero 2</label>
-        <input type="number" name="value2">
+        <label for="value_2">Numero 2</label>
+        <input type="number" name="value_2">
 
         <p>                
             <input type="radio" name="operation" id="sum" value="sum">
@@ -29,7 +29,7 @@
             <label for="divide">Dividir</label>
         </p>
 
-        <button name="form" value="sent">enviar</button>
+        <button>enviar</button>
     </form>
     {% if result != None %}
     <h2>{{ result }}</h2>

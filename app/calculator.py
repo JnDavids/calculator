@@ -1,116 +1,45 @@
-from typing import Callable, Any
+from typing import Any, Literal, TypeAlias
 from datetime import datetime
 
+Operation: TypeAlias = Literal["sum", "subb", "multiply", "divide"]
 
-class Calculator:
 
-    __slots__ = ["_operation", "_value1", "_value2", "_result", "_date"]
+class Calculation:
 
-    def __init__(self, operation: str, value1: int, value2: int) -> None:
+    __slots__ = ["_operation", "_value_1", "_value_2", "_result", "_date"]
+
+    def __init__(
+        self,
+        operation: Operation,
+        value_1: int | float,
+        value_2: int | float,
+        result: int | float,
+        date: datetime
+    ) -> None:
         self._operation = operation
-        self._value1 = value1
-        self._value2 = value2
-        self._result = self.calculate()
-        self._date = datetime.utcnow()
+        self._value_1 = value_1
+        self._value_2 = value_2
+        self._result = result
+        self._date = date
 
-    @property
-    def operation(self) -> str:
-        return self._operation
+    operation: str = property(lambda self: self._operation)
 
-    @property
-    def value1(self) -> int:
-        return self._value1
+    value_1: int | float = property(lambda self: self._value_1)
 
-    @property
-    def value2(self) -> int:
-        return self._value2
-    
-    @property
-    def result(self) -> int | float:
-        return self._result
-    
-    @property
-    def date(self) -> datetime:
-        return self._date
+    value_2: int | float = property(lambda self: self._value_2)
 
-    @property
-    def as_dict(self) -> dict[str, Any]:
+    result: int | float = property(lambda self: self._result)
+
+    date: datetime = property(lambda self: self._date)
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "operation": self._operation,
-            "value_1": self._value1,
-            "value_2": self._value2,
+            "value_1": self._value_1,
+            "value_2": self._value_2,
             "result": self._result,
             "date": self._date
         }
-
-    @property
-    def as_tuple(self) -> tuple[str, int, int, int | float, datetime]:
-        return (
-            self._operation,
-            self._value1,
-            self._value2,
-            self._result,
-            self._date
-        )
-
-    def calculate(self) -> int | float:
-        self._check_args()
-        operation = self._select_operation()
-
-        return operation()
-
-    def _select_operation(self) -> Callable[[], int | float]:
-        operations = {
-            "sum": self._sum,
-            "subb": self._subtract,
-            "multiply": self._multiply,
-            "divide": self._divide
-        }
-
-        return operations[self._operation]
-
-    def _sum(self) -> int:
-        return self._value1 + self._value2
-    
-    def _subtract(self) -> int:
-        return self._value1 - self._value2
-
-    def _multiply(self) -> int:
-        return self._value1 * self._value2
-    
-    def _divide(self) -> float:
-        return self._value1 / self._value2
-
-    def _check_args(self) -> None:
-        missing_args = []
-        invalid_args = []
-
-        if not self._operation:
-            missing_args.append("Operator")
-        else:
-            try:
-                self._select_operation()
-            except:
-                invalid_args.append("Operator")
-
-        if self._value1 is None:
-            missing_args.append("Value 1")
-        else:
-            try:
-                float(self._value1)
-            except:
-                invalid_args.append("Value 1")
-        
-        if self._value2 is None:
-            missing_args.append("Value 2")
-        else:
-            try:
-                float(self._value2)
-            except:
-                invalid_args.append("Value 2")
-
-        if missing_args or invalid_args:
-            raise CalcError(missing_args, invalid_args)
 
 
 class CalcError(Exception):
@@ -124,9 +53,7 @@ class CalcError(Exception):
     ) -> None:
         self._missing_args = missing_args
         self._invalid_args = invalid_args
-        self._msg = None
-        
-        self._uptade_msg()
+        self._msg = self._uptade_msg()
 
     def __str__(self) -> str:
         return self._msg
@@ -135,14 +62,78 @@ class CalcError(Exception):
     def msg(self) -> str:
         return self._msg
     
-    def _uptade_msg(self) -> None:
-        self._msg = ""
+    def _uptade_msg(self) -> str:
+        msg = ""
 
         if self._missing_args:
-            self._msg += f"Missing {', '.join(self._missing_args)}. "
+            msg += f"Missing {', '.join(self._missing_args)}. "
 
         if self._invalid_args:
-            self._msg += (
+            msg += (
                 f"{', '.join(self._invalid_args)} "
                 f"{'are' if len(self._invalid_args) > 1 else 'is'} invalid."
             )
+
+        return msg.strip()
+
+
+class Calculator:
+
+    __slots__ = []
+
+    def calculate(self, **kwargs: Any) -> Calculation:
+        operation_args = self._check_args(**kwargs)
+        result = self._make_operation(**operation_args)
+
+        return Calculation(
+            **operation_args, result=result, date=datetime.utcnow()
+        )
+
+    @staticmethod
+    def _make_operation(
+        operation: Operation, value_1: int | float, value_2: int | float
+    ) -> int | float | None:
+        operations = {
+            "sum": value_1 + value_2,
+            "subb": value_1 - value_2,
+            "multiply": value_1 * value_2,
+            "divide": value_1 / value_2
+        }
+        return operations.get(operation)
+
+    @classmethod
+    def _check_args(cls, **kwargs: Any) -> dict[str, Any]:
+        operation = kwargs.get("operation")
+        value_1 = kwargs.get("value_1")
+        value_2 = kwargs.get("value_2")
+
+        missing_args = []
+        invalid_args = []
+
+        if not operation:
+            missing_args.append("Operator")
+        elif cls._make_operation(operation, 1, 1) is None:
+            invalid_args.append("Operator")
+
+        if value_1 is None or value_1 == "":
+            missing_args.append("Value 1")
+        else:
+            try:
+                value_1 = float(value_1)
+            except:
+                invalid_args.append("Value 1")
+        
+        if value_2 is None or value_2 == "":
+            missing_args.append("Value 2")
+        else:
+            try:
+                value_2 = float(value_2)
+            except:
+                invalid_args.append("Value 2")
+
+        if missing_args or invalid_args:
+            raise CalcError(missing_args, invalid_args)
+        
+        return {
+            "operation": operation, "value_1": value_1, "value_2": value_2
+        }

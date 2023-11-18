@@ -6,7 +6,8 @@ services:
       - 5000:5000
       - 8089:8089
     volumes:
-      - ./log:/app/log
+      - ./app:/app
+      - ./app/log:/app/log
 
   mysql:
     image: mysql

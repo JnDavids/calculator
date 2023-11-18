@@ -1,33 +1,40 @@
-from datetime import datetime, date
-from calculator import Calculator
+from datetime import datetime
+from calculator import Calculation
 from mysql.connector import MySQLConnection
 from mysql.connector.cursor import MySQLCursor
+from typing import Any
 
 
 class CalcPersistenceInDB:
 
-    def persist(self, calculation: Calculator) -> None:
+    def persist(self, calculation: Calculation) -> None:
         connection = self._connect()
         cursor = connection.cursor()
-
-        cursor.execute(
-            "INSERT INTO history_tb "
-                "(operation, value_1, value_2, result, date) "
-            "VALUES (%s, %s, %s, %s, %s)",
-            calculation.as_tuple
-        )
+        query = """
+            INSERT INTO history_tb (
+                operation, value_1, value_2, result, date
+            ) VALUES (
+                %(operation)s,
+                %(value_1)s,
+                %(value_2)s,
+                %(result)s,
+                %(date)s
+            )
+        """
+        cursor.execute(query, calculation.to_dict())
         connection.commit()
         self._close(cursor, connection)
 
     def get_history_by_date(
         self,
         initial_date: str | datetime | None = None,
-        final_date: str | datetime | None = None
+        final_date: str | datetime | None = None,
+        **rest: Any
     ) -> list[dict]:
         connection = self._connect()
         cursor = connection.cursor(dictionary=True)
 
-        sql = "SELECT * FROM history_tb"
+        query = "SELECT * FROM history_tb"
         where_clause = []
         params = []
 
@@ -40,9 +47,9 @@ class CalcPersistenceInDB:
             params.append(final_date)
 
         if where_clause:
-            sql += " WHERE " + " AND ".join(where_clause)
+            query += " WHERE " + " AND ".join(where_clause)
 
-        cursor.execute(sql, params)
+        cursor.execute(query, params)
         history = cursor.fetchall()
 
         self._close(cursor, connection)

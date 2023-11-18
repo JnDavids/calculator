@@ -6,7 +6,6 @@ RUN pip install flask-executor
 RUN pip install mysql-connector-python
 
 WORKDIR /app
-COPY ./app .
 
 EXPOSE 8089
 EXPOSE 5000
