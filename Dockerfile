@@ -9,5 +9,6 @@ WORKDIR /app
 
 EXPOSE 8089
 EXPOSE 5000
+EXPOSE 5001
 
-CMD flask --app app run --host=0.0.0.0
+ENTRYPOINT ["/bin/tail", "-f", "/dev/null"]

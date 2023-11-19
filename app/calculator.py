@@ -53,7 +53,7 @@ class CalcError(Exception):
     ) -> None:
         self._missing_args = missing_args
         self._invalid_args = invalid_args
-        self._msg = self._uptade_msg()
+        self._msg = self._update_msg()
 
     def __str__(self) -> str:
         return self._msg
@@ -62,7 +62,7 @@ class CalcError(Exception):
     def msg(self) -> str:
         return self._msg
     
-    def _uptade_msg(self) -> str:
+    def _update_msg(self) -> str:
         msg = ""
 
         if self._missing_args:
