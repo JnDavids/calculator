@@ -1,16 +1,15 @@
 from flask import Flask, request, jsonify, render_template
-from flask_executor import Executor
+from confluent_kafka import Producer
 
 from logger import logger
-from persist import CalcPersistenceInDB
 from calculator import Calculator
 from jsonprovider import CalcJSONProvider
 
 Flask.json_provider_class = CalcJSONProvider
 
 app = Flask(__name__)
-executor = Executor(app)
 calculator = Calculator()
+producer = Producer({ "bootstrap.servers": "kafka:9092" })
 
 
 @app.route("/")
@@ -21,14 +20,13 @@ def index():
         calculation = calculator.calculate(**url_parameters)
     except Exception as err:
         return jsonify(error=str(err))
-    else:
-        try:
-            calculation_db = CalcPersistenceInDB()
-            executor.submit(calculation_db.persist(calculation))
-        except Exception as err:
-            logger.error(err)
 
-        return jsonify(calculation.to_dict())
+    try:
+        producer.produce("calculations", app.json.dumps(calculation))
+    except Exception as err:
+        logger.error(err)
+
+    return jsonify(calculation)
 
 
 @app.route("/calculate")
@@ -48,8 +46,7 @@ def calculate():
             result = None
     else:
         try:
-            calculation_db = CalcPersistenceInDB()
-            executor.submit(calculation_db.persist(calculation))
+            producer.produce("calculations", app.json.dumps(calculation))
         except Exception as err:
             logger.error(err)
 

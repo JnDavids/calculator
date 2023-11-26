@@ -1,5 +1,4 @@
 from datetime import datetime
-from calculator import Calculation
 from mysql.connector import MySQLConnection
 from mysql.connector.cursor import MySQLCursor
 from typing import Any
@@ -7,7 +6,7 @@ from typing import Any
 
 class CalcPersistenceInDB:
 
-    def persist(self, calculation: Calculation) -> None:
+    def persist(self, calculation: dict[str, Any]) -> None:
         connection = self._connect()
         cursor = connection.cursor()
         query = """
@@ -21,7 +20,7 @@ class CalcPersistenceInDB:
                 %(date)s
             )
         """
-        cursor.execute(query, calculation.to_dict())
+        cursor.execute(query, calculation)
         connection.commit()
         self._close(cursor, connection)
 

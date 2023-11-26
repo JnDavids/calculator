@@ -22,7 +22,7 @@ class Calculation:
         self._result = result
         self._date = date
 
-    operation: str = property(lambda self: self._operation)
+    operation: Operation = property(lambda self: self._operation)
 
     value_1: int | float = property(lambda self: self._value_1)
 
@@ -81,9 +81,10 @@ class Calculator:
 
     __slots__ = []
 
-    def calculate(self, **kwargs: Any) -> Calculation:
-        operation_args = self._check_args(**kwargs)
-        result = self._make_operation(**operation_args)
+    @classmethod
+    def calculate(cls, **kwargs: Any) -> Calculation:
+        operation_args = cls._check_args(**kwargs)
+        result = cls._make_operation(**operation_args)
 
         return Calculation(
             **operation_args, result=result, date=datetime.utcnow()
