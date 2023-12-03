@@ -6,7 +6,6 @@ services:
     ports:
       - 5000:5000
       - 5001:5001
-      - 8089:8089
     volumes:
       - ./app:/app
       - ./app/log:/app/log

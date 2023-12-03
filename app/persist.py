@@ -28,6 +28,7 @@ class CalcPersistenceInDB:
         self,
         initial_date: str | datetime | None = None,
         final_date: str | datetime | None = None,
+        page: str | int = 1,
         **rest: Any
     ) -> list[dict]:
         connection = self._connect()
@@ -36,6 +37,7 @@ class CalcPersistenceInDB:
         query = "SELECT * FROM history_tb"
         where_clause = []
         params = []
+        offset = int(page) * 20 - 20
 
         if initial_date:
             where_clause.append("date >= %s")
@@ -47,6 +49,9 @@ class CalcPersistenceInDB:
 
         if where_clause:
             query += " WHERE " + " AND ".join(where_clause)
+
+        query += " ORDER BY date DESC LIMIT %s, 20"
+        params.append(offset)
 
         cursor.execute(query, params)
         history = cursor.fetchall()
