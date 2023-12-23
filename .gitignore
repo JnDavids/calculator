@@ -178,3 +178,4 @@ database
 tst.sql
 tst.py
 log
+pushbullet_config.py

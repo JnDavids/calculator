@@ -16,7 +16,7 @@ consumer.subscribe(["calculations"])
 while True:
     msg = consumer.poll()
 
-    if not msg.error():
+    if msg and not msg.error():
         try:
             calculation = json.loads(msg.value())
             calculations_db.persist(calculation)

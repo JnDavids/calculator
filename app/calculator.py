@@ -48,19 +48,18 @@ class CalcError(Exception):
 
     def __init__(
         self,
+        msg: str | None,
         missing_args: list[str] | None = None,
         invalid_args: list[str] | None = None
     ) -> None:
         self._missing_args = missing_args
         self._invalid_args = invalid_args
-        self._msg = self._update_msg()
+        self._msg = msg or self._update_msg()
 
     def __str__(self) -> str:
         return self._msg
 
-    @property
-    def msg(self) -> str:
-        return self._msg
+    msg: str = property(lambda self: self._msg)
     
     def _update_msg(self) -> str:
         msg = ""
@@ -133,7 +132,10 @@ class Calculator:
                 invalid_args.append("Value 2")
 
         if missing_args or invalid_args:
-            raise CalcError(missing_args, invalid_args)
+            raise CalcError(None, missing_args, invalid_args)
+        
+        if operation == "divide" and value_2 == 0:
+            raise CalcError("Can't divide by zero.")
         
         return {
             "operation": operation, "value_1": value_1, "value_2": value_2

@@ -59,6 +59,17 @@ class CalcPersistenceInDB:
         self._close(cursor, connection)
         return history
 
+    def get_calculations_count(self) -> int:
+        connection = self._connect()
+        cursor = connection.cursor()
+
+        cursor.execute("SELECT COUNT(*) FROM history_tb")
+
+        [[count]] = cursor.fetchall()
+
+        self._close(cursor, connection)
+        return count
+
     @staticmethod
     def _connect() -> MySQLConnection:
         return MySQLConnection(
