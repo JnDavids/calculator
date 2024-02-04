@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ style }}">
+    <title>Calculator</title>
+</head>
+<body>
+    <section id="calculate-section">
+        <h1 id="title">Calculator</h1>
+
+        <form action="/calculate" action="GET">
+            <div class="input">
+                <label for="input-value-1">Value 1</label>
+                <input class="input-field" id="input-value-1" type="text" name="value_1">
+            </div>
+            <div class="input">
+                <label for="input-value-2">Value 2</label>
+                <input class="input-field" id="input-value-2" type="text" name="value_2">
+            </div>
+    
+            <div id="operations">
+                <button id="operation" name="operation" value="sum">Add</button>
+                <button id="operation" name="operation" value="subb">Subtract</button>
+                <button id="operation" name="operation" value="multiply">Multiply</button>
+                <button id="operation" name="operation" value="divide">Divide</button>
+            </div>
+        </form>
+
+        {% if result %}
+            <div class="calculation">
+                {% if status == "ok" %}
+                    <div class="blue" id="value-1">{{ result.value_1 }}</div>
+                    <div class="yellow" id="operator">{{ result.operation }}</div>
+                    <div class="blue" id="value-2">{{ result.value_2 }}</div>
+                    <div class="yellow" id="equals">=</div>
+                    <div class="blue" id="result-{{ status }}">{{ result.result }}</div>
+                {% elif status == "error" %}
+                    <div class="red" id="result-{{ status }}">{{ result }}</div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </section>
+    <script src="{{ script }}"></script>
+</body>
+</html>

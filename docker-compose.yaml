@@ -10,6 +10,14 @@ services:
       - ./app:/app
       - ./app/log:/app/log
 
+  client:
+    build: ./client
+    container_name: client
+    ports:
+      - 4321:4321
+    volumes:
+      - ./client:/app
+
   mysql:
     image: mysql
     container_name: mysql

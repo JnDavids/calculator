@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 from confluent_kafka import Producer
 
 from logger import logger
@@ -12,14 +12,14 @@ calculator = Calculator()
 producer = Producer({ "bootstrap.servers": "kafka:9092" })
 
 
-@app.route("/")
+@app.route("/calculate")
 def index():
     url_parameters = request.args.to_dict()
 
     try:
         calculation = calculator.calculate(**url_parameters)
     except Exception as err:
-        return jsonify(error=str(err))
+        return jsonify(error=str(err)), 400
 
     try:
         producer.produce("calculations", app.json.dumps(calculation))
@@ -27,30 +27,6 @@ def index():
         logger.error(err)
 
     return jsonify(calculation)
-
-
-@app.route("/calculate")
-def calculate():
-    url_parameters = request.args.to_dict()
-
-    try:
-        calculation = calculator.calculate(**url_parameters)
-        result = calculation.result
-    except Exception as err:
-        if any(
-            parameter in url_parameters
-            for parameter in ("operation", "value_1", "value_2")
-        ):
-            result = str(err)
-        else:
-            result = None
-    else:
-        try:
-            producer.produce("calculations", app.json.dumps(calculation))
-        except Exception as err:
-            logger.error(err)
-
-    return render_template("index.html", result=result)
 
 
 if __name__ == "__main__":

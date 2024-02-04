@@ -1,0 +1,137 @@
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap');
+
+:root {
+    --background-color: rgb(40, 40, 40);
+    --input-background-color: rgb(42, 42, 42);
+    --section-color: rgb(52, 52, 52);
+    --white: rgb(240, 240, 240);
+
+    --main-outline-color: rgb(72, 72, 72);
+    --light-outline-color: rgb(100, 100, 100);
+
+    --red: rgb(200, 40, 80);
+    --dark-red: rgb(50, 10, 20);
+
+    --blue: rgb(70, 140, 210);
+    --dark-blue: rgb(17, 35, 52);
+
+    --yellow: rgb(210, 180, 80);
+    --dark-yellow: rgb(52, 45, 20);
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "rubik", sans-serif;
+    background-color: var(--background-color);
+    color: var(--white);
+    text-align: center;
+}
+
+#title {
+    margin-bottom: 30px;
+}
+
+#calculate-section {
+    font-size: 17px;
+    background-color: var(--section-color);
+    width: fit-content;
+    margin: 70px auto;
+    padding: 30px;
+    border-radius: 5px;
+    outline: 1px solid var(--main-outline-color);
+    color: var(--white);
+}
+
+.input input, .input label {
+    text-align: center;
+    margin: 15px auto;
+}
+
+.input label {
+    margin-right: 20px;
+}
+
+.input-field {
+    font-family: "rubik", sans-serif;
+    font-size: 14px;
+    padding: 5px;
+    border-style: none;
+    width: fit-content;
+    outline: 1px solid var(--main-outline-color);
+    background-color: var(--input-background-color);
+    color: var(--white);
+    border-radius: 5px;
+    transition: 0.5s;
+}
+
+.input-field:hover, .input-field:focus {
+    outline-color: var(--light-outline-color);
+}
+
+.input-field:focus {
+    background-color: var(--background-color);
+}
+
+#input-value-1 {
+    margin-left: 3px;
+}
+
+#operations {
+    display: flex;
+    margin: 20px auto;
+    width: fit-content;
+}
+
+#operation {
+    margin: 0 7px;
+    padding: 5px 9px;
+    font-family: "rubik", sans-serif;
+    font-size: 16px;
+    background-color: var(--background-color);
+    color: var(--white);
+    outline: 1px solid var(--light-outline-color);
+    border-style: none;
+    border-radius: 4px;
+    transition: 0.5s;
+    cursor: pointer;
+}
+
+#operation:hover {
+    background-color: var(--main-outline-color);
+    outline-color: var(--white);
+}
+
+.calculation {
+    display: flex;
+    margin: 0 auto;
+    width: fit-content;
+}
+
+.red, .blue, .yellow {
+    margin-top: 10px;
+    margin-left: 2px;
+    margin-right: 2px;
+    width: fit-content;
+    min-width: 12px;
+    padding: 5px 9px;
+    border-radius: 5px;
+}
+
+.yellow {
+    color: var(--yellow);
+    outline: 1px solid var(--yellow);
+    background-color: var(--dark-yellow);
+}
+
+.blue {
+    color: var(--blue);
+    outline: 1px solid var(--blue);
+    background-color: var(--dark-blue);
+}
+
+.red {
+    color: var(--red);
+    outline: 1px solid var(--red);
+    background-color: var(--dark-red);
+}

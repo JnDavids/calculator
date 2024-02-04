@@ -97,7 +97,7 @@ class Calculator:
             "sum": value_1 + value_2,
             "subb": value_1 - value_2,
             "multiply": value_1 * value_2,
-            "divide": value_1 / value_2
+            "divide": value_2 and value_1 / value_2
         }
         return operations.get(operation)
 
