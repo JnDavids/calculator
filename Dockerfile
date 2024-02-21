@@ -1,12 +1,12 @@
-FROM python
-
-RUN pip install Flask
-RUN pip install mysql-connector-python
-RUN pip install confluent-kafka
+FROM python:3.12
 
 WORKDIR /app
+
+COPY ./requirements.txt .
+
+RUN pip install -r requirements.txt
 
 EXPOSE 5000
 EXPOSE 5001
 
-ENTRYPOINT ["/bin/tail", "-f", "/dev/null"]
+ENTRYPOINT ["sleep", "infinity"]

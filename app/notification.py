@@ -1,48 +1,52 @@
-import time
 import json
-
-from logger import logger
+import os
+import time
 from http.client import HTTPResponse
-from urllib.request import Request, urlopen
-from persist import CalcPersistenceInDB
-from pushbullet_config import (
-    PUSHBULLET_ACCESS_TOKEN,
-    PUSHBULLET_TARGET
-)
+from urllib.request import HTTPError, Request, urlopen
+
+from persistence import CalculationsDB
+from utils import get_logger
 
 
 class Pushbullet:
 
-    __slots__ = ["_access_token", "_target"]
+    __slots__ = ["_access_token", "_target_type", "_target"]
 
     def __init__(
-        self, access_token: str, target: dict[str, str]
+        self,
+        access_token: str,
+        target_type: str | None = None,
+        target: str | None = None
     ) -> None:
-        self._access_token = access_token
-        self._target = target
+        if access_token:
+            self._access_token = access_token
+            self._target_type = target_type
+            self._target = target
+        else:
+            raise Exception("Missing Pushbullet access token")
 
-    def create_push(
-        self, msg: str, title: str | None = None
-    ) -> HTTPResponse:
-        body = self.get_send_push_request_body(msg, title)
-        request = self.get_send_push_request(body)
+    def note(self, msg: str, title: str | None = None) -> HTTPResponse:
+        body = self._note_request_body(msg, title)
+        request = self._note_request(body)
 
         return urlopen(request)
 
-    def get_send_push_request_body(
+    def _note_request_body(
         self, msg: str, title: str | None
     ) -> dict[str, str]:
         body = {
             "type": "note",
-            "body": msg,
-            **self._target
+            "body": msg
         }
         if title:
             body["title"] = title
 
+        if self._target_type and self._target:
+            body[self._target_type] = self._target
+
         return body
 
-    def get_send_push_request(self, body: dict[str, str]) -> Request:
+    def _note_request(self, body: dict[str, str]) -> Request:
         return Request(
             url="https://api.pushbullet.com/v2/pushes",
 
@@ -57,30 +61,45 @@ class Pushbullet:
         )
 
 
-try:
-    calculations_db = CalcPersistenceInDB()
-    count = calculations_db.get_calculations_count()
-except Exception as err:
-    logger.error(err)
-    count = None
-
-while count is not None:
-    time.sleep(60)
+def main():
+    logger = get_logger("notification")
+    push_interval = int(os.getenv("PUSH_INTERVAL", 5)) or 1
 
     try:
-        new_count = calculations_db.get_calculations_count()
+        pushbullet = Pushbullet(
+            os.getenv("PUSHBULLET_ACCESS_TOKEN"),
+            os.getenv("PUSHBULLET_TARGET_TYPE"),
+            os.getenv("PUSHBULLET_TARGET")
+        )
+        calculations_db = CalculationsDB()
+        count = calculations_db.get_calculations_count()
     except Exception as err:
         logger.error(err)
-        continue
+        count = None
 
-    if count >= new_count:
-        continue
+    while count is not None:
+        time.sleep(push_interval * 60)
 
-    new_calculations = new_count - count
-    count = new_count
+        try:
+            new_count = calculations_db.get_calculations_count()
+        except Exception as err:
+            logger.error(err)
+            continue
 
-    msg = (f"You have {new_calculations} new calculation"
-           + ("s" if new_calculations > 1 else ""))
+        if count >= new_count:
+            continue
 
-    pushbullet = Pushbullet(PUSHBULLET_ACCESS_TOKEN, PUSHBULLET_TARGET)
-    pushbullet.create_push(msg, "Calculator")
+        new_calculations = new_count - count
+
+        msg = (f"You have {new_calculations} new calculation"
+            + ("s" if new_calculations > 1 else ""))
+
+        try:
+            pushbullet.note(msg, "Calculator")
+            count = new_count
+        except HTTPError as err:
+            logger.error(err.read().decode())
+
+
+if __name__ == "__main__":
+    main()

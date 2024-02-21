@@ -1,15 +1,19 @@
-from flask import Flask, request, jsonify
+import os
+
 from confluent_kafka import Producer
+from flask import Flask, jsonify, request
 
-from logger import logger
 from calculator import Calculator
-from jsonprovider import CalcJSONProvider
-
-Flask.json_provider_class = CalcJSONProvider
+from utils import CalculatorJSONProvider, get_logger
 
 app = Flask(__name__)
-calculator = Calculator()
-producer = Producer({ "bootstrap.servers": "kafka:9092" })
+app.json = CalculatorJSONProvider(app)
+
+logger = get_logger("calculate")
+
+producer = Producer({
+    "bootstrap.servers": os.getenv("KAFKA_BOOTSTRAP_SERVER")
+})
 
 
 @app.route("/calculate")
@@ -17,12 +21,14 @@ def index():
     url_parameters = request.args.to_dict()
 
     try:
-        calculation = calculator.calculate(**url_parameters)
+        calculation = Calculator.calculate(**url_parameters)
     except Exception as err:
         return jsonify(error=str(err)), 400
 
     try:
-        producer.produce("calculations", app.json.dumps(calculation))
+        producer.produce(
+            os.getenv("KAFKA_TOPIC"), app.json.dumps(calculation)
+        )
     except Exception as err:
         logger.error(err)
 

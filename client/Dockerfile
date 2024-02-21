@@ -1,6 +1,6 @@
-FROM python:3.12-alpine3.19
+FROM python:3.12
 
-RUN pip install Flask
+RUN pip install Flask==3.0.2
 
 WORKDIR /app
 

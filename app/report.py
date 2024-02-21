@@ -1,21 +1,21 @@
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request
 
-from logger import logger
-from persist import CalcPersistenceInDB
-from jsonprovider import CalcJSONProvider
+from persistence import CalculationsDB
+from utils import CalculatorJSONProvider, get_logger
 
-Flask.json_provider_class = CalcJSONProvider
 app = Flask(__name__)
+app.json = CalculatorJSONProvider(app)
+logger = get_logger("report")
 
 
 @app.route("/report")
 def report():
     url_parameters = request.args.to_dict()
+    calculations_db = CalculationsDB()
 
     try:
-        calculation_db = CalcPersistenceInDB()
         return jsonify(
-            calculation_db.get_history_by_date(**url_parameters)
+            calculations_db.get_calculations(**url_parameters)
         )
     except Exception as err:
         logger.error(err)
